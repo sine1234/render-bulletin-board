@@ -11,7 +11,7 @@
             padding-top: 2rem;
         }
         .post-card {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             transition: transform 0.2s;
         }
         .post-card:hover {
@@ -20,6 +20,18 @@
         .post-date {
             font-size: 0.8rem;
             color: #6c757d;
+        }
+        .reply-card {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            background-color: #f8f9fa;
+            border-left: 3px solid #0d6efd;
+        }
+        .reply-form {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
         }
     </style>
 </head>
@@ -51,6 +63,41 @@
                             <h5 class="card-title"><%= post.title %></h5>
                             <p class="post-date mb-2"><%= new Date(post.created_at).toLocaleString('ja-JP') %></p>
                             <p class="card-text"><%= post.content %></p>
+                            
+                            <!-- 返信フォーム -->
+                            <button class="btn btn-sm btn-outline-primary mb-3" 
+                                    type="button" 
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#replyForm<%= post.id %>"
+                                    aria-expanded="false">
+                                返信する
+                            </button>
+                            
+                            <div class="collapse" id="replyForm<%= post.id %>">
+                                <div class="reply-form">
+                                    <form action="/posts/<%= post.id %>/replies" method="POST">
+                                        <div class="mb-3">
+                                            <textarea class="form-control" name="content" rows="2" placeholder="返信を入力" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary">返信を送信</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- 返信一覧 -->
+                            <% if (post.replies && post.replies.length > 0) { %>
+                                <div class="replies mt-3">
+                                    <h6 class="text-muted mb-3">返信 (<%= post.replies.length %>)</h6>
+                                    <% post.replies.forEach(reply => { %>
+                                        <div class="card reply-card">
+                                            <div class="card-body py-2">
+                                                <p class="card-text mb-1"><%= reply.content %></p>
+                                                <small class="text-muted"><%= new Date(reply.created_at).toLocaleString('ja-JP') %></small>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 <% }); %>
