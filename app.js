@@ -7,6 +7,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// 削除用パスワード
+const DELETE_PASSWORD = 'ntxareed';
+
 // PostgreSQLの設定
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -61,6 +64,7 @@ createTables();
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(express.json()); // JSON解析用ミドルウェアを追加
 
 // ルート設定
 app.get('/', async (req, res) => {
@@ -132,6 +136,24 @@ app.post('/posts/:postId/replies', async (req, res) => {
       posts: [],
       error: '返信に失敗しました。しばらく待ってから再度お試しください。'
     });
+  }
+});
+
+// スレッドを削除
+app.delete('/posts/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { password } = req.body;
+
+  if (password !== DELETE_PASSWORD) {
+    return res.status(403).json({ error: 'パスワードが正しくありません。' });
+  }
+
+  try {
+    await pool.query('DELETE FROM posts WHERE id = $1', [postId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('削除エラー:', err.message);
+    res.status(500).json({ error: '削除に失敗しました。' });
   }
 });
 

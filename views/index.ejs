@@ -33,6 +33,11 @@
             background-color: #f8f9fa;
             border-radius: 0.25rem;
         }
+        .post-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -64,15 +69,48 @@
                             <p class="post-date mb-2"><%= new Date(post.created_at).toLocaleString('ja-JP') %></p>
                             <p class="card-text"><%= post.content %></p>
                             
-                            <!-- 返信フォーム -->
-                            <button class="btn btn-sm btn-outline-primary mb-3" 
-                                    type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#replyForm<%= post.id %>"
-                                    aria-expanded="false">
-                                返信する
-                            </button>
+                            <div class="post-actions">
+                                <!-- 返信ボタン -->
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#replyForm<%= post.id %>"
+                                        aria-expanded="false">
+                                    返信する
+                                </button>
+
+                                <!-- 削除ボタン -->
+                                <button class="btn btn-sm btn-outline-danger"
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal<%= post.id %>">
+                                    削除
+                                </button>
+                            </div>
                             
+                            <!-- 削除確認モーダル -->
+                            <div class="modal fade" id="deleteModal<%= post.id %>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">投稿の削除</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>この投稿を削除するにはパスワードを入力してください。</p>
+                                            <div class="mb-3">
+                                                <input type="password" class="form-control" id="password<%= post.id %>" placeholder="パスワード">
+                                            </div>
+                                            <div id="errorMessage<%= post.id %>" class="text-danger"></div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                            <button type="button" class="btn btn-danger" onclick="deletePost(<%= post.id %>)">削除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="collapse" id="replyForm<%= post.id %>">
                                 <div class="reply-form">
                                     <form action="/posts/<%= post.id %>/replies" method="POST">
@@ -106,5 +144,34 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function deletePost(postId) {
+            const password = document.getElementById(`password${postId}`).value;
+            const errorMessage = document.getElementById(`errorMessage${postId}`);
+            
+            try {
+                const response = await fetch(`/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // 削除成功
+                    window.location.reload();
+                } else {
+                    // エラーメッセージを表示
+                    errorMessage.textContent = data.error || '削除に失敗しました。';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'エラーが発生しました。';
+                console.error('Error:', error);
+            }
+        }
+    </script>
 </body>
 </html> 
