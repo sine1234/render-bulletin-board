@@ -67,9 +67,32 @@
         }
         .total-posts {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             color: #6c757d;
             font-size: 0.9rem;
+        }
+        .kiriban-message {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #ff8787);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
 </head>
@@ -78,10 +101,15 @@
         <h1 class="text-center mb-4">掲示板</h1>
         
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-md-">
                 <!-- 総投稿数 -->
                 <div class="total-posts">
                     総投稿数: <%= postCount %>
+                </div>
+
+                <!-- キリ番メッセージ -->
+                <div class="kiriban-message">
+                    🎯 キリ番踏んだらだいちに教えてぷりーず 🎯
                 </div>
 
                 <div class="card mb-4">
