@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: bulletin-board
+    env: node
+    buildCommand: npm install
+    startCommand: node app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bulletin-board-db
+          property: connectionString
+
+databases:
+  - name: bulletin-board-db
+    databaseName: bulletin_board
+    plan: free 
