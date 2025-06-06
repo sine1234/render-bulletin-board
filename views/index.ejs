@@ -38,6 +38,45 @@
             gap: 0.5rem;
             margin-bottom: 1rem;
         }
+        .kiriban {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: 2px solid #FFD700;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .kiriban .card-body {
+            position: relative;
+            overflow: hidden;
+        }
+        .kiriban::before {
+            content: "🎉 キリ番ゲット！";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #FFD700;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #000;
+            z-index: 1;
+        }
+        .post-number {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        .total-posts {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .next-kiriban {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -46,6 +85,18 @@
         
         <div class="row justify-content-center">
             <div class="col-md-8">
+                <!-- 総投稿数とキリ番情報 -->
+                <div class="total-posts mb-4">
+                    <h5>総投稿数: <%= postCount %></h5>
+                    <% const nextKiriban = Math.ceil((postCount + 1) / 1000) * 1000; %>
+                    <p class="next-kiriban mb-0">
+                        次のキリ番まで残り <%= nextKiriban - postCount %> 件
+                        <% if (nextKiriban - postCount <= 10) { %>
+                            <span class="text-danger">（もうすぐキリ番！）</span>
+                        <% } %>
+                    </p>
+                </div>
+
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title mb-3">新規投稿</h5>
@@ -63,8 +114,9 @@
 
                 <h4 class="mb-3">投稿一覧</h4>
                 <% posts.forEach(post => { %>
-                    <div class="card post-card">
+                    <div class="card post-card <%= post.is_kiriban ? 'kiriban' : '' %>">
                         <div class="card-body">
+                            <div class="post-number">投稿 #<%= post.post_number %></div>
                             <h5 class="card-title"><%= post.title %></h5>
                             <p class="post-date mb-2"><%= new Date(post.created_at).toLocaleString('ja-JP') %></p>
                             <p class="card-text"><%= post.content %></p>

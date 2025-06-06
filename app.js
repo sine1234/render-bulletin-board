@@ -37,6 +37,8 @@ async function createTables() {
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         content TEXT NOT NULL,
+        post_number BIGINT NOT NULL,
+        is_kiriban BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -76,6 +78,8 @@ app.get('/', async (req, res) => {
         p.title,
         p.content,
         p.created_at,
+        p.post_number,
+        p.is_kiriban,
         COALESCE(json_agg(
           json_build_object(
             'id', r.id,
@@ -85,16 +89,24 @@ app.get('/', async (req, res) => {
         ) FILTER (WHERE r.id IS NOT NULL), '[]') as replies
       FROM posts p
       LEFT JOIN replies r ON p.id = r.post_id
-      GROUP BY p.id, p.title, p.content, p.created_at
+      GROUP BY p.id, p.title, p.content, p.created_at, p.post_number, p.is_kiriban
       ORDER BY p.created_at DESC
     `);
+
+    // 総投稿数を取得
+    const totalPosts = await pool.query('SELECT COUNT(*) FROM posts');
+    const postCount = parseInt(totalPosts.rows[0].count);
     
-    res.render('index', { posts: result.rows });
+    res.render('index', { 
+      posts: result.rows,
+      postCount: postCount
+    });
   } catch (err) {
     console.error('データベースクエリエラー:', err.message);
     console.error('エラーの詳細:', err);
     res.status(500).render('index', { 
       posts: [],
+      postCount: 0,
       error: 'データベースエラーが発生しました。しばらく待ってから再度お試しください。'
     });
   }
@@ -104,16 +116,37 @@ app.get('/', async (req, res) => {
 app.post('/posts', async (req, res) => {
   const { title, content } = req.body;
   try {
-    await pool.query(
-      'INSERT INTO posts (title, content) VALUES ($1, $2)',
-      [title, content]
-    );
+    // トランザクション開始
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 現在の投稿数を取得
+      const result = await client.query('SELECT COUNT(*) FROM posts');
+      const currentCount = parseInt(result.rows[0].count);
+      const newPostNumber = currentCount + 1;
+      const isKiriban = newPostNumber % 1000 === 0; // 1000の倍数かチェック
+
+      // 新規投稿を作成
+      await client.query(
+        'INSERT INTO posts (title, content, post_number, is_kiriban) VALUES ($1, $2, $3, $4)',
+        [title, content, newPostNumber, isKiriban]
+      );
+
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
     res.redirect('/');
   } catch (err) {
     console.error('投稿エラー:', err.message);
     console.error('エラーの詳細:', err);
     res.status(500).render('index', { 
       posts: [],
+      postCount: 0,
       error: '投稿に失敗しました。しばらく待ってから再度お試しください。'
     });
   }
@@ -134,6 +167,7 @@ app.post('/posts/:postId/replies', async (req, res) => {
     console.error('エラーの詳細:', err);
     res.status(500).render('index', { 
       posts: [],
+      postCount: 0,
       error: '返信に失敗しました。しばらく待ってから再度お試しください。'
     });
   }
