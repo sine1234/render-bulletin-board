@@ -68,14 +68,8 @@
         .total-posts {
             text-align: center;
             margin-bottom: 2rem;
-            padding: 1rem;
-            background-color: #fff;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .next-kiriban {
-            font-size: 0.9rem;
             color: #6c757d;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -85,16 +79,9 @@
         
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <!-- 総投稿数とキリ番情報 -->
-                <div class="total-posts mb-4">
-                    <h5>総投稿数: <%= postCount %></h5>
-                    <% const nextKiriban = Math.ceil((postCount + 1) / 1000) * 1000; %>
-                    <p class="next-kiriban mb-0">
-                        次のキリ番まで残り <%= nextKiriban - postCount %> 件
-                        <% if (nextKiriban - postCount <= 10) { %>
-                            <span class="text-danger">（もうすぐキリ番！）</span>
-                        <% } %>
-                    </p>
+                <!-- 総投稿数 -->
+                <div class="total-posts">
+                    総投稿数: <%= postCount %>
                 </div>
 
                 <div class="card mb-4">
